@@ -1,12 +1,13 @@
 
 
 class Collaborator:
-	def __init__(self, id, connections, name="UNKNOWN"):
+	def __init__(self, id, connections, interests, name="UNKNOWN"):
 		self.name = name
 		self.id = id
 		self.connections = connections
+		self.interests = interests
 	def __repr__(self):
-		return "Researcher: {}; ID: {}; Connections: {}".format(self.name, self.id, self.connections)
+		return "Researcher: {}; ID: {}; Interests: {}; Connections: {}".format(self.name, self.id, self.interests, self.connections)
 	def add_connection(self, id):
 		if id not in self.connections.keys():
 			self.connections[id] = 1
@@ -33,7 +34,7 @@ def read_network():
 	collaborators = f.readlines()
 	for collaborator in collaborators:
 		attributes = collaborator.split("| ") #each line is formatted: <id>| <name>| <dictionary of connections>
-		network[int(attributes[0])] = Collaborator(int(attributes[0]), ast.literal_eval(attributes[2]), attributes[1])
+		network[int(attributes[0])] = Collaborator(int(attributes[0]), ast.literal_eval(attributes[3]), ast.literal_eval(attributes[2]), attributes[1])
 	f.close()
 	return network
 	
@@ -42,7 +43,7 @@ def output_network(network):
 	f = open("network.txt","w+")
 	for key in sorted(network):
 		collaborator = network[key]
-		f.write("{}| {}| {}\n".format(collaborator.id, collaborator.name, collaborator.connections))
+		f.write("{}| {}| {}| {}\n".format(collaborator.id, collaborator.name, collaborator.interests, collaborator.connections))
 	f.close()
 
 #create a network from the database
@@ -66,13 +67,23 @@ def collect_network():
 		#make sure that all the authors are in the network
 		for author in authorsQueryResults:
 			if author[0] not in network.keys():
+				#get the name of the author
 				query = "SELECT name FROM cpcollabnet2019.Researcher WHERE rid = " + str(author[0])
 				cursor.execute(query)
 				nameQueryResults = cursor.fetchall()
+				
+				#get the interests of the author
+				interests = []
+				query = "SELECT interest FROM cpcollabnet2019.Interest WHERE rid = " + str(author[0])
+				cursor.execute(query)
+				interestQueryResults = cursor.fetchall()
+				for interest in interestQueryResults:
+					interests.append(interest[0])
+				
 				if len(nameQueryResults) != 0:
-					network[author[0]] = Collaborator(author[0], {}, nameQueryResults[0][0])
+					network[author[0]] = Collaborator(author[0], {}, interests, nameQueryResults[0][0])
 				else:
-					network[author[0]] = Collaborator(author[0], {})
+					network[author[0]] = Collaborator(author[0], {}, interests)
 		
 		#add connections between all the authors that worked on the paper
 		for i in range(len(authorsQueryResults) - 1):
