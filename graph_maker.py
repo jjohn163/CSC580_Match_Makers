@@ -17,9 +17,29 @@ class Collaborator:
 def main():
 	#network = collect_network()
 	network = read_network()
+	generate_csv_network(network)
 	#output_network(network)
 	#display_network(network)
-	print(network[1])
+	print(network["Chris Lupo"])
+
+def generate_csv_network(network):
+	import csv
+	with open('network.csv', 'w', newline='') as csvfile:
+		fieldnames = ['subject', 'type', 'target']
+		writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+		for researcher in network.keys():
+			for connection in network[researcher].connections.keys():
+				collaborations = network[researcher].connections[connection]
+				connectionStrength = ""
+				if collaborations == 1:
+					connectionStrength = "WEAKLY_CONNECTED"
+				elif collaborations < 5:
+					connectionStrength = "NORMALLY_CONNECTED"
+				else:
+					connectionStrength = "STRONGLY_CONNECTED"
+				writer.writerow({'subject': researcher, 'type': connectionStrength, 'target': connection})
+			for interest in network[researcher].interests:
+				writer.writerow({'subject': researcher, 'type': 'INTERESTED_IN', 'target': interest})
 
 #display the contents of the given network in the console
 def display_network(network):
@@ -34,7 +54,7 @@ def read_network():
 	collaborators = f.readlines()
 	for collaborator in collaborators:
 		attributes = collaborator.split("| ") #each line is formatted: <id>| <name>| <dictionary of connections>
-		network[int(attributes[0])] = Collaborator(int(attributes[0]), ast.literal_eval(attributes[3]), ast.literal_eval(attributes[2]), attributes[1])
+		network[attributes[1]] = Collaborator(int(attributes[0]), ast.literal_eval(attributes[3]), ast.literal_eval(attributes[2]), attributes[1])
 	f.close()
 	return network
 	
@@ -65,31 +85,27 @@ def collect_network():
 		authorsQueryResults = cursor.fetchall() #for each row, index 0 -> rid
 		
 		#make sure that all the authors are in the network
+		authorNames = []
 		for author in authorsQueryResults:
-			if author[0] not in network.keys():
-				#get the name of the author
-				query = "SELECT name FROM cpcollabnet2019.Researcher WHERE rid = " + str(author[0])
-				cursor.execute(query)
-				nameQueryResults = cursor.fetchall()
+			query = "SELECT name FROM cpcollabnet2019.Researcher WHERE rid = " + str(author[0])
+			cursor.execute(query)
+			nameQueryResults = cursor.fetchall()
+			if len(nameQueryResults) != 0:
+				if nameQueryResults[0][0] not in network.keys():
+					interests = []
+					query = "SELECT interest FROM cpcollabnet2019.Interest WHERE rid = " + str(author[0])
+					cursor.execute(query)
+					interestQueryResults = cursor.fetchall()
+					for interest in interestQueryResults:
+						interests.append(interest[0])
+					network[nameQueryResults[0][0]] = Collaborator(author[0], {}, interests, nameQueryResults[0][0])
+				authorNames.append(nameQueryResults[0][0])
 				
-				#get the interests of the author
-				interests = []
-				query = "SELECT interest FROM cpcollabnet2019.Interest WHERE rid = " + str(author[0])
-				cursor.execute(query)
-				interestQueryResults = cursor.fetchall()
-				for interest in interestQueryResults:
-					interests.append(interest[0])
-				
-				if len(nameQueryResults) != 0:
-					network[author[0]] = Collaborator(author[0], {}, interests, nameQueryResults[0][0])
-				else:
-					network[author[0]] = Collaborator(author[0], {}, interests)
-		
 		#add connections between all the authors that worked on the paper
-		for i in range(len(authorsQueryResults) - 1):
-			for j in range(i + 1, len(authorsQueryResults)):
-				network[authorsQueryResults[i][0]].add_connection(authorsQueryResults[j][0])
-				network[authorsQueryResults[j][0]].add_connection(authorsQueryResults[i][0])
+		for i in range(len(authorNames) - 1):
+			for j in range(i + 1, len(authorNames)):
+				network[authorNames[i]].add_connection(authorNames[j])
+				network[authorNames[j]].add_connection(authorNames[i])
 				
 	cursor.close()
 	cnx.close()
