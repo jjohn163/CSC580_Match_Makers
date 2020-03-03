@@ -20,11 +20,11 @@ def main():
 	generate_csv_network(network)
 	#output_network(network)
 	#display_network(network)
-	print(network["Chris Lupo"])
+	#print(network["Chris Lupo"])
 
 def generate_csv_network(network):
 	import csv
-	with open('network.csv', 'w', newline='') as csvfile:
+	with open('network.csv', 'w', newline='', encoding='utf-8') as csvfile:
 		fieldnames = ['subject', 'type', 'target']
 		writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 		for researcher in network.keys():
