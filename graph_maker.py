@@ -17,8 +17,8 @@ class Collaborator:
 def main():
 	#network = collect_network()
 	network = read_network()
-	generate_csv_network(network)
-	#output_network(network)
+	#generate_csv_network(network)
+	output_network(network)
 	#display_network(network)
 	#print(network["Chris Lupo"])
 
@@ -60,7 +60,7 @@ def read_network():
 	
 #output a given network to a textfile
 def output_network(network):
-	f = open("network.txt","w+")
+	f = open("network.txt","w+", encoding='utf-8')
 	for key in sorted(network):
 		collaborator = network[key]
 		f.write("{}| {}| {}| {}\n".format(collaborator.id, collaborator.name, collaborator.interests, collaborator.connections))
