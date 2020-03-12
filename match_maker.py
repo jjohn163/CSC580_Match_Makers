@@ -1,5 +1,7 @@
 from model_maker import *
 from graph_maker import *
+from tkinter import *
+from tkinter import scrolledtext
 
 import numpy as np
 import pandas as pd
@@ -59,11 +61,61 @@ def generate_reccomendations(network, model, positives_filter, target, topic):
 def main():
     network = read_network()
     positives_filter = load_from_csv('.', 'network.csv', sep=',')
+    #generate_model(positives_filter)
     model = load_model()
-    reccomendations = generate_reccomendations(network, model, positives_filter, "Bruce DeBruhl", "artificial intelligence")
-    if len(reccomendations) > 5:
-        reccomendations = reccomendations[:5]
-    print(reccomendations)
+
+    window = Tk()
+
+    window.title("Match Makers")
+
+    window.geometry('350x200')
+
+    lbl = Label(window, text="Name")
+
+    lbl.grid(column=0, row=0)
+
+    target = Entry(window,width=30)
+
+    target.grid(column=1, row=0)
+
+    lbl2 = Label(window, text="Topic")
+
+    lbl2.grid(column=0, row=1)
+
+    topic = Entry(window, width=30)
+
+    topic.grid(column=1, row=1)
+
+    lbl3 = Label(window, text="Results")
+
+    lbl3.grid(column=0, row=3)
+    
+    results = scrolledtext.ScrolledText(window,width=40,height=10)
+
+    results.grid(column=0, row=4)
+
+    def clicked():
+
+        #res = "Welcome to " + target.get()
+        reccomendations = generate_reccomendations(network, model, positives_filter, target.get(), topic.get())
+        if len(reccomendations) > 5:
+            reccomendations = reccomendations[:5]
+        final_result = "\n".join(reccomendations)
+
+        results.delete(1.0,END)
+        results.insert(INSERT,final_result)
+
+    btn = Button(window, text="Process", command=clicked)
+
+    btn.grid(column=0, row=2)
+
+    window.mainloop()
+
+
+#    reccomendations = generate_reccomendations(network, model, positives_filter, "Bruce DeBruhl", "artificial intelligence")
+#    if len(reccomendations) > 5:
+#        reccomendations = reccomendations[:5]
+#    print(reccomendations)
 
 
 
