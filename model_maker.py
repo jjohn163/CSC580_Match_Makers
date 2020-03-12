@@ -26,14 +26,14 @@ from ampligraph.evaluation import mr_score, mrr_score, hits_at_n_score
 
 
 def generate_model(X):
-    X_train, X_test = train_test_split_no_unseen(X, test_size=100)
+    X_train, X_test = train_test_split_no_unseen(X, test_size=1000)
 
     print('Train set size: ', X_train.shape)
     print('Test set size: ', X_test.shape)
 
     model = ComplEx(batches_count=100,
                     seed=0,
-                    epochs=200,
+                    epochs=1000,
                     k=150,
                     eta=5,
                     optimizer='adam',
@@ -52,12 +52,12 @@ def generate_model(X):
 
     print("created the model")
 
-    save_model(model, './match_model.pkl')
+    save_model(model, './match1000_model.pkl')
     
     return X_test
 
 def load_model():
-    model = restore_model('./match_model.pkl')
+    model = restore_model('./match1000_model.pkl')
 
     if model.is_fitted:
         print('The model is fit!')
