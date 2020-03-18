@@ -1,3 +1,5 @@
 # CSC580_Match_Makers
 
-I thought we would seem more professional if we had a git repo.  Also no additional branches because we can just push to master.
+To setup your environment, follow the readme located at https://github.com/Accenture/AmpliGraph.
+
+After following the setup mentioned above and cloning this repo, load the program by running the match_maker.py script.
